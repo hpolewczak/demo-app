@@ -99,9 +99,9 @@ class SingleRow extends React.Component {
             <tr>
                 <td>{saveButton}</td>
                 <td>{this.props.row.applicationNumber}</td>
-                <td>{this.props.row.manufacturerName.join(", ")}</td>
-                <td>{this.props.row.substanceName.join(", ")}</td>
-                <td>{this.props.row.productNumbers.join(", ")}</td>
+                <td>{this.props.row.manufacturerName ? this.props.row.manufacturerName.join(", ") : ""}</td>
+                <td>{this.props.row.substanceName ? this.props.row.substanceName.join(", ") : ""}</td>
+                <td>{this.props.row.productNumbers ? this.props.row.productNumbers.join(", ") : ""}</td>
             </tr>
         );
     }
@@ -127,21 +127,37 @@ class OpenFda extends React.Component {
             searchQuery: event.target.value
       });
     }
+    previousPage(event) {
+        event.preventDefault();
+        this.fetchData(Math.max(0, this.state.skip - this.state.limit), this.state.limit);
+    }
+    nextPage(event) {
+        event.preventDefault();
+        if ((this.state.skip + this.state.limit) < this.state.total) {
+            this.fetchData((this.state.skip + this.state.limit), this.state.limit);
+        }
+    }
     handleButtonClicked(event) {
         event.preventDefault();
-      fetch("/v1/open-fda?manufacturerName=" + this.state.searchQuery +
-                "&skip=" + this.state.skip + "&limit=" + this.state.limit)
-          .then(response => response.json())
-          .then((data) => {
-              this.setState({
-                results: data.drugApplication,
-                total: data.total,
-                skip: data.skip,
-                limit: data.limit,
-                searchQuery: this.state.searchQuery
-              })
-          })
-          .catch(console.log)
+        if (this.state.searchQuery === "") {
+            return;
+        }
+        this.fetchData(this.state.skip, this.state.limit);
+    }
+    fetchData(skip, limit) {
+        fetch("/v1/open-fda?manufacturerName=" + this.state.searchQuery +
+                        "&skip=" + skip + "&limit=" + limit)
+                  .then(response => response.json())
+                  .then((data) => {
+                      this.setState({
+                        results: data.drugApplication,
+                        total: data.total,
+                        skip: data.skip,
+                        limit: data.limit,
+                        searchQuery: this.state.searchQuery
+                      })
+                  })
+                  .catch(console.log);
     }
     saveRow(row) {
         const requestOptions = {
@@ -156,6 +172,8 @@ class OpenFda extends React.Component {
                 });
     }
     render() {
+        let totalPages = (<><span>0</span></>);
+        let currentPage = (<><span>1</span></>);
         let listItems = (<><tr><td colSpan="5">No data</td></tr></>);
         if (this.state.results && this.state.results.length) {
             listItems = this.state.results.map((r) => {
@@ -163,17 +181,27 @@ class OpenFda extends React.Component {
                     <SingleRow key={r.applicationNumber} readOnly={false} onSave={this.saveRow} row={r} />
                 );
             });
+            totalPages = (<><span>{Math.ceil(this.state.total / this.state.limit)}</span></>);
+            currentPage = (<><span>{Math.ceil(this.state.skip / this.state.limit) + 1}</span></>);
         }
         return (
             <main role="main" className="flex-shrink-0">
               <div className="container">
                 <div>
-                    <form className="form-inline mt-2 mt-md-0">
-                      <input className="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search"
-                                value={this.state.searchQuery} onChange={this.handleInputChanged.bind(this)} />
-                      <button className="btn btn-outline-success my-2 my-sm-0" type="submit"
-                                    onClick={this.handleButtonClicked.bind(this)}>Search</button>
-                    </form>
+                    <div>
+                        <span>total pages: {totalPages},</span>
+                        <span>current page: {currentPage}</span>
+                        <button className="btn btn-primary" onClick={this.previousPage.bind(this)}>previous page: </button>
+                        <button className="btn btn-primary" onClick={this.nextPage.bind(this)}>next page: </button>
+                    </div>
+                    <div className="search-form">
+                        <form className="form-inline mt-2 mt-md-0">
+                          <input className="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search"
+                                    value={this.state.searchQuery} onChange={this.handleInputChanged.bind(this)} />
+                          <button className="btn btn-outline-success my-2 my-sm-0" type="submit"
+                                        onClick={this.handleButtonClicked.bind(this)}>Search</button>
+                        </form>
+                    </div>
                 </div>
                 <div className="results">
                     <table>
