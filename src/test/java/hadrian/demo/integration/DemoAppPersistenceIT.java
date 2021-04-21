@@ -50,19 +50,19 @@ class DemoAppPersistenceIT {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> request = new HttpEntity<>(serializeToJson(drugApplication), headers);
 		assertThat(restTemplate.postForEntity(
-				urlPrefix + "/v1/drugApplication", request, String.class)
+				urlPrefix + "/v1/drug-application", request, String.class)
 				.getStatusCode())
 				.isEqualTo(HttpStatus.OK);
 	}
 
 	@AfterEach
 	void tearDown() {
-		restTemplate.delete(urlPrefix + "/v1/drugApplication/" + APPLICATION_NUMBER);
+		restTemplate.delete(urlPrefix + "/v1/drug-application/" + APPLICATION_NUMBER);
 	}
 
 	@Test
 	void shouldGetDrugApplication() {
-		assertThat(restTemplate.getForObject(urlPrefix + "/v1/drugApplication", String.class))
+		assertThat(restTemplate.getForObject(urlPrefix + "/v1/drug-application", String.class))
 				.contains(APPLICATION_NUMBER);
 	}
 

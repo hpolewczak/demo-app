@@ -14,22 +14,22 @@ public class DrugApplicationController {
         this.drugApplicationRepository = drugApplicationRepository;
     }
 
-    @GetMapping("/v1/drugApplication")
+    @GetMapping("/v1/drug-application")
     public Flux<DrugApplication> getDrugApplications() {
         return drugApplicationRepository.findAll();
     }
 
-    @GetMapping("/v1/drugApplication/{id}")
+    @GetMapping("/v1/drug-application/{id}")
     public Mono<DrugApplication> getDrugApplication(@PathVariable String id) {
         return drugApplicationRepository.findById(id);
     }
 
-    @PostMapping("/v1/drugApplication")
+    @PostMapping("/v1/drug-application")
     public Mono<DrugApplication> saveDrugApplication(@RequestBody DrugApplication drugApplication) {
         return drugApplicationRepository.save(drugApplication);
     }
 
-    @DeleteMapping("/v1/drugApplication/{id}")
+    @DeleteMapping("/v1/drug-application/{id}")
     public Mono<Void> deleteDrugApplication(@PathVariable String id) {
         return drugApplicationRepository.deleteById(id);
     }

@@ -33,9 +33,76 @@ class HeaderApp extends React.Component {
 }
 
 class Saved extends React.Component {
+    constructor(props) {
+        super(props);
+        this.downloadData();
+    }
+    downloadData() {
+      fetch("http://localhost:8080/v1/drug-application")
+          .then(response => response.json())
+          .then((data) => {
+              this.setState({
+                results: data,
+                total: data.length,
+                skip: 0,
+                limit: data.length,
+              });
+
+          })
+          .catch(console.log)
+    }
     render() {
+        let listItems;
+        if (this.state && this.state.results && this.state.results.length) {
+            listItems = this.state.results.map((r) => {
+                return (
+                    <SingleRow key={r.applicationNumber} readOnly={true} onSave={this.saveRow} row={r} />
+                );
+            });
+        }
         return (
-            <div>SAVED</div>
+<main role="main" className="flex-shrink-0">
+              <div className="container">
+                <div className="results">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>action</th>
+                                <th>Application Id</th>
+                                <th>Manufacturer name</th>
+                                <th>Substance name</th>
+                                <th>Product numbers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {listItems}
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+            </main>
+        );
+    }
+}
+
+class SingleRow extends React.Component {
+    save(event) {
+        event.preventDefault();
+        this.props.onSave(this.props.row);
+    }
+    render() {
+        let saveButton = (<><p></p></>);
+        if(!this.props.readOnly) {
+            saveButton = (<><button onClick={this.save.bind(this)}>save</button></>);
+        }
+        return (
+            <tr>
+                <td>{saveButton}</td>
+                <td>{this.props.row.applicationNumber}</td>
+                <td>{this.props.row.manufacturerName.join(", ")}</td>
+                <td>{this.props.row.substanceName.join(", ")}</td>
+                <td>{this.props.row.productNumbers.join(", ")}</td>
+            </tr>
         );
     }
 }
@@ -60,15 +127,12 @@ class OpenFda extends React.Component {
             searchQuery: event.target.value
       });
     }
-    handleButtonClicked() {
-/*      fetch("http://localhost:8080/v1/open-fda?manufacturerName=" + this.state.searchQuery +
-                "&skip=" + this.state.skip + "&limit=" + this.state.limit)*/
-        fetch("http://localhost:8080/v1/drugApplication")
-          .then(res => {
-            res.json();
-          })
+    handleButtonClicked(event) {
+        event.preventDefault();
+      fetch("http://localhost:8080/v1/open-fda?manufacturerName=" + this.state.searchQuery +
+                "&skip=" + this.state.skip + "&limit=" + this.state.limit)
+          .then(response => response.json())
           .then((data) => {
-                debugger;
               this.setState({
                 results: data.drugApplication,
                 total: data.total,
@@ -76,22 +140,27 @@ class OpenFda extends React.Component {
                 limit: data.limit,
                 searchQuery: this.state.searchQuery
               })
-              debugger;
           })
           .catch(console.log)
+    }
+    saveRow(row) {
+        const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(row)
+            };
+        fetch("http://localhost:8080/v1/drugApplication", requestOptions)
+                .then(response => response.json())
+                .then(data => {
+                    this.setState({ postId: data.id })
+                });
     }
     render() {
         let listItems = (<><tr><td colSpan="5">No data</td></tr></>);
         if (this.state.results && this.state.results.length) {
-            listItems = this.state.results.map((row) => {
+            listItems = this.state.results.map((r) => {
                 return (
-                    <tr>
-                        <td>1</td>
-                        <td>2</td>
-                        <td>3</td>
-                        <td>4</td>
-                        <td>5</td>
-                    </tr>
+                    <SingleRow key={r.applicationNumber} readOnly={false} onSave={this.saveRow} row={r} />
                 );
             });
         }
@@ -110,11 +179,11 @@ class OpenFda extends React.Component {
                     <table>
                         <thead>
                             <tr>
-                                <th>select</th>
-                                <th>App id</th>
-                                <th>sad</th>
-                                <th>dsfa</th>
-                                <th>fa</th>
+                                <th>action</th>
+                                <th>Application Id</th>
+                                <th>Manufacturer name</th>
+                                <th>Substance name</th>
+                                <th>Product numbers</th>
                             </tr>
                         </thead>
                         <tbody>
