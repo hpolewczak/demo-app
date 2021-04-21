@@ -38,7 +38,7 @@ class Saved extends React.Component {
         this.downloadData();
     }
     downloadData() {
-      fetch("http://localhost:8080/v1/drug-application")
+      fetch("/v1/drug-application")
           .then(response => response.json())
           .then((data) => {
               this.setState({
@@ -129,7 +129,7 @@ class OpenFda extends React.Component {
     }
     handleButtonClicked(event) {
         event.preventDefault();
-      fetch("http://localhost:8080/v1/open-fda?manufacturerName=" + this.state.searchQuery +
+      fetch("/v1/open-fda?manufacturerName=" + this.state.searchQuery +
                 "&skip=" + this.state.skip + "&limit=" + this.state.limit)
           .then(response => response.json())
           .then((data) => {
@@ -149,10 +149,10 @@ class OpenFda extends React.Component {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(row)
             };
-        fetch("http://localhost:8080/v1/drugApplication", requestOptions)
+        fetch("/v1/drug-application", requestOptions)
                 .then(response => response.json())
                 .then(data => {
-                    this.setState({ postId: data.id })
+                    alert("saved");
                 });
     }
     render() {
